@@ -66,7 +66,7 @@ Please make sure you have all the requirements installed before using this tool:
 
 -  Pypi
 
-       pip3 install -r requirements.txt (it will be available soon..)
+       pip3 install -r requirements.txt
 
 Credits
 -------
