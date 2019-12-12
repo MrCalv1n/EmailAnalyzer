@@ -1,0 +1,5 @@
+extract_msg
+eml_parser
+filemagic
+virustotal_api
+compoundfiles
