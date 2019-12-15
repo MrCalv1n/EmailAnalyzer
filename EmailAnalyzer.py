@@ -147,7 +147,7 @@ def logo():
 
 
 def main():
-
+    print("\033c");
     logo()
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
