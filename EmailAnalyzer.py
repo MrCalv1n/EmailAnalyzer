@@ -290,6 +290,8 @@ def main():
                                 w_file.write(m[0] + '\n')
                         except:
                             print("Error, can't connect to VirusTotal!")
+                            
+    print("Done! Check out the output directory to see the results.")             
 
 def expand_url(url, provider):
     while provider in url:
