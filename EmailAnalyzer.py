@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+#EmailAnalyzer.py (python3 script) by André Calvinho (aka MrCalv1n, calv1n, ...)
+#Extracts IoCs (emails, IPs, URLs, attachments,...) from .msg and .eml files.
+#
+#Currently, it also has support to expand shorted URLs and to scan attached files and URLs against VirusTotal.
+#
+#You need a VirusTotal API to use this feature.
+#
+#Please note that it doesn't upload any files to VirusTotal, it only checks if there is a match with known hashes 
+#(so don't worry about exfiltrating sensitive files ;-) ). It also doesn't visit the expanded URL webpage, it only performs 
+#some checks against the short url site provider.
 
 import extract_msg
 from eml_parser import eml_parser
