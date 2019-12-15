@@ -57,7 +57,7 @@ optional arguments:
 * Check for Windows OS compatibility;
 * Customize the header fields for requests;
 * Create HTML final report (summary report);
-* Adding proxy support;
+* Add proxy support;
 * ...
 
 Installation
