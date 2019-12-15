@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-#EmailAnalyzer.py (python3 script) by André Calvinho (aka MrCalv1n, calv1n, ...)
+#EmailAnalyzer.py (python3 script) 
+#by André Calvinho (aka MrCalv1n and calv1n)
+
 #Extracts IoCs (emails, IPs, URLs, attachments,...) from .msg and .eml files.
 #
 #Currently, it also has support to expand shorted URLs and to scan attached files and URLs against VirusTotal.
