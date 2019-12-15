@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 #EmailAnalyzer.py (python3 script) by André Calvinho (aka MrCalv1n, calv1n, ...)
 #Extracts IoCs (emails, IPs, URLs, attachments,...) from .msg and .eml files.
 #
