@@ -1,3 +1,3 @@
-#You can put here ips or email domains
+#You can put here IPs and/or Email domains
 #e.g. 198.1.1.1
 #@domain.com
