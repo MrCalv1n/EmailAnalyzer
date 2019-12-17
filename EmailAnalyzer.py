@@ -283,6 +283,10 @@ def main():
                 VT_report(r_file, w_file, url_rule)
             with open(output_dir + ip_file,'r') as r_file:
                 VT_report(r_file, w_file, url_rule)
+                
+        #Remove malware_urls.txt file if empty
+        if os.stat(output_dir + 'malware_urls.txt').st_size == 0:
+            os.remove(output_dir + 'malware_urls.txt')
 
                             
     print("Done! Check out the output directory to see the results.")   
