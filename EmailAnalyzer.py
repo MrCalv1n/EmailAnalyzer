@@ -21,7 +21,7 @@ import os
 import base64
 import magic
 import argparse
-from pprint import pprint
+from collections import OrderedDict
 from virus_total_apis import PublicApi as VirusTotalPublicApi
 import errno
 import json
@@ -30,6 +30,8 @@ import outlookmsgfile
 import requests
 import hashlib
 import time #remove if not needed
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def remove_duplicate_lines(input_file, output_file):
     lines_seen = set() # holds lines already seen
@@ -237,9 +239,19 @@ def main():
 
     if args.virus_total:
 
-        API_KEY = open('confs/VirusTotal_api.key', 'r').readline().strip()
+        VT_KEY = ""
+        vt = ""
 
-        vt = VirusTotalPublicApi(API_KEY)
+        with open('confs/api_config_keys.txt', 'r') as config_file:
+            for line in config_file:
+                if "VT_API" in line:
+                    VT_KEY = line.split("'")[1]
+
+        if VT_KEY != "" and "key" not in VT_KEY:
+            vt = VirusTotalPublicApi(VT_KEY)
+        else:
+            print("Error! Can't read a valid VirusTotal api key!")
+            quit()
 
         # traverse root directory, and list directories as dirs and files as files in the extracted attachments
         for root, dirs, files in os.walk(output_dir + "/extracted-attachments/"):
@@ -250,6 +262,7 @@ def main():
                     response_code = 204
                     while response_code == 204:
                         resp = vt.get_file_report(hash_file)
+                        pprint(resp)
                         response_code = resp['response_code']
                         if response_code == 204:
                             time.sleep(60)
@@ -282,14 +295,14 @@ def main():
                 VT_report(vt, r_file, w_file, url_rule, "url")
             with open(output_dir + ip_file,'r') as r_file:
                 VT_report(vt, r_file, w_file, url_rule, "ip")
-                
+
         #Remove malware_urls.txt file if empty
         if os.stat(output_dir + 'malware_urls.txt').st_size == 0:
             os.remove(output_dir + 'malware_urls.txt')
 
-                            
-    print("Done! Check out the output directory to see the results.")   
-    
+
+    print("Done! Check out the output directory to see the results.")
+
 def VT_report(vt, r_file, w_file, rule, type):
     for line in r_file:
         match = re.findall(rule,line.strip())
@@ -312,7 +325,15 @@ def VT_report(vt, r_file, w_file, rule, type):
 
 def expand_url(url, provider):
     while provider in url:
-        resp = requests.get(url, allow_redirects=False)
+        headers=OrderedDict([
+            ('User-Agent', 'EmailAnalyzer python3 tool'),
+            ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'),
+            ('Accept-Language', 'en-US,en;q=0.5'),
+            ('Accept-Encoding', 'gzip, deflate'),
+            ('Upgrade-Insecure-Requests', '1')
+        ])
+
+        resp = requests.get(url, headers=headers, allow_redirects=False)
         url = resp.headers['Location']
     return url
 
