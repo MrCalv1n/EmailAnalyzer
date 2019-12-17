@@ -280,9 +280,9 @@ def main():
 
         with open(output_dir + 'malware_urls.txt','at') as w_file:
             with open(output_dir + url_file,'r') as r_file:
-                VT_report(r_file, w_file, url_rule)
+                VT_report(r_file, w_file, url_rule, "url")
             with open(output_dir + ip_file,'r') as r_file:
-                VT_report(r_file, w_file, url_rule)
+                VT_report(r_file, w_file, url_rule, "ip")
                 
         #Remove malware_urls.txt file if empty
         if os.stat(output_dir + 'malware_urls.txt').st_size == 0:
@@ -291,14 +291,17 @@ def main():
                             
     print("Done! Check out the output directory to see the results.")   
     
-def VT_report(r_file, w_file, rule):
+def VT_report(r_file, w_file, rule, type):
     for line in r_file:
         match = re.findall(rule,line.strip())
         for m in match:
             try:
                 response_code = 204
                 while response_code == 204:
-                    resp = vt.get_url_report(m[0])
+                    if type == "url":
+                        resp = vt.get_url_report(m[0])
+                    if type == "ip":
+                        resp = vt.get_ip_report(m[0])
                     response_code = resp['response_code']
                     if response_code == 204:
                         time.sleep(60)
