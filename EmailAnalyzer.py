@@ -251,7 +251,6 @@ def main():
                     while response_code == 204:
                         resp = vt.get_file_report(hash_file)
                         response_code = resp['response_code']
-                        print(response_code)
                         if response_code == 204:
                             time.sleep(60)
                     if resp['results']['response_code'] == 1 and resp['results']['positives'] > 10:
