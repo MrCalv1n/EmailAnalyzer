@@ -278,7 +278,7 @@ def main():
                     ip_rule = line.split('"')[3].replace('\\\\','\\')
 
 
-        with open('malware_urls.txt','at') as w_file:
+        with open(output_dir + 'malware_urls.txt','at') as w_file:
             with open(output_dir + url_file,'r') as r_file:
                 VT_report(r_file, w_file, url_rule)
             with open(output_dir + ip_file,'r') as r_file:
