@@ -289,20 +289,20 @@ def main():
     
 def VT_report(r_file, w_file, rule):
     for line in r_file:
-    match = re.findall(rule,line.strip())
-    for m in match:
-        try:
-            response_code = 204
-            while response_code == 204:
-                resp = vt.get_url_report(m[0])
-                response_code = resp['response_code']
-                if response_code == 204:
-                    time.sleep(60)
+        match = re.findall(rule,line.strip())
+        for m in match:
+            try:
+                response_code = 204
+                while response_code == 204:
+                    resp = vt.get_url_report(m[0])
+                    response_code = resp['response_code']
+                    if response_code == 204:
+                        time.sleep(60)
 
-            if resp['results']['response_code'] == 1 and resp['results']['positives'] > 0:
-                w_file.write(m[0] + '\n')
-        except:
-            print("Error, can't connect to VirusTotal!")
+                if resp['results']['response_code'] == 1 and resp['results']['positives'] > 0:
+                    w_file.write(m[0] + '\n')
+            except:
+                print("Error, can't connect to VirusTotal!")
 
 def expand_url(url, provider):
     while provider in url:
