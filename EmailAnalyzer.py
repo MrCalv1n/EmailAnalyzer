@@ -217,8 +217,8 @@ def main():
     #Check if shorturls exist, if so, expland them
     switch = False
 
-    with open('urls_tmp.txt','wt') as newurls_file:
-        with open('urls.txt','rt') as urls_file:
+    with open(output_dir + 'urls_tmp.txt','wt') as newurls_file:
+        with open(output_dir + 'urls.txt','rt') as urls_file:
             with open('confs/shorturl-providers.txt','rt') as f:
                 shorturlproviders = f.readlines()
                 for line in urls_file:
@@ -264,6 +264,8 @@ def main():
 
         url_file = ""
         url_rule = ""
+        ip_file = ""
+        ip_rule = ""
 
         with open('confs/rules.json', 'r') as file:
 
@@ -271,27 +273,36 @@ def main():
                 if "http" in line:
                     url_file = line.split('"')[1] + '.txt'
                     url_rule = line.split('"')[3].replace('\\\\','\\')
+                if "ip" in line:
+                    ip_file = line.split('"')[1] + '.txt'
+                    ip_rule = line.split('"')[3].replace('\\\\','\\')
 
 
         with open('malware_urls.txt','at') as w_file:
-            with open(url_file,'r') as file:
-                for line in file:
-                    match = re.findall(url_rule,line.strip())
-                    for m in match:
-                        try:
-                            response_code = 204
-                            while response_code == 204:
-                                resp = vt.get_url_report(m[0])
-                                response_code = respo['response_code']
-                                if response_code == 204:
-                                    time.sleep(60)
+            with open(url_file,'r') as r_file:
+                VT_report(r_file, w_file, url_rule)
+            with open(ip_file,'r') as r_file:
+                VT_report(r_file, w_file, url_rule)
 
-                            if resp['results']['response_code'] == 1 and resp['results']['positives'] > 0:
-                                w_file.write(m[0] + '\n')
-                        except:
-                            print("Error, can't connect to VirusTotal!")
                             
-    print("Done! Check out the output directory to see the results.")             
+    print("Done! Check out the output directory to see the results.")   
+    
+def VT_report(r_file, w_file, rule):
+    for line in r_file:
+    match = re.findall(rule,line.strip())
+    for m in match:
+        try:
+            response_code = 204
+            while response_code == 204:
+                resp = vt.get_url_report(m[0])
+                response_code = resp['response_code']
+                if response_code == 204:
+                    time.sleep(60)
+
+            if resp['results']['response_code'] == 1 and resp['results']['positives'] > 0:
+                w_file.write(m[0] + '\n')
+        except:
+            print("Error, can't connect to VirusTotal!")
 
 def expand_url(url, provider):
     while provider in url:
