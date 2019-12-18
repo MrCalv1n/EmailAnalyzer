@@ -186,9 +186,9 @@ def main():
 
             fileType = magic.Magic().id_filename(filepath)
 
-            if "Microsoft Outlook Message" in fileType:
+            if "Microsoft Outlook Message" in fileType and ".msg" in filepath:
                 msg_parser_func(filepath, output_dir)
-            elif "text" in fileType:
+            elif "text" in fileType and ".eml" in filepath:
                 eml_parser_func(filepath, output_dir)
             else:
                 continue
@@ -197,9 +197,9 @@ def main():
 
         fileType = magic.Magic().id_filename(args.input_file)
 
-        if "Microsoft Outlook Message" in fileType:
+        if "Microsoft Outlook Message" in fileType and ".msg" in args.input_file:
             msg_parser_func(args.input_file, output_dir)
-        elif "text" in fileType:
+        elif "text" in fileType and ".eml" in args.input_file:
             eml_parser_func(args.input_file, output_dir)
         else:
             print("File Type not supported!")
