@@ -188,7 +188,7 @@ def main():
 
             if "Microsoft Outlook Message" in fileType:
                 msg_parser_func(filepath, output_dir)
-            elif "Unicode text" in fileType:
+            elif "text" in fileType:
                 eml_parser_func(filepath, output_dir)
             else:
                 continue
@@ -199,7 +199,7 @@ def main():
 
         if "Microsoft Outlook Message" in fileType:
             msg_parser_func(args.input_file, output_dir)
-        elif "Unicode text" in fileType:
+        elif "text" in fileType:
             eml_parser_func(args.input_file, output_dir)
         else:
             print("File Type not supported!")
@@ -262,7 +262,6 @@ def main():
                     response_code = 204
                     while response_code == 204:
                         resp = vt.get_file_report(hash_file)
-                        pprint(resp)
                         response_code = resp['response_code']
                         if response_code == 204:
                             time.sleep(60)
