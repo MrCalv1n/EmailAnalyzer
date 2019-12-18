@@ -81,12 +81,12 @@ def parsed_founds(src_file, output_dir):
         match = re.findall(regex,str(src_file))
 
         with open('confs/whitelist.txt', 'rt') as f:
-            whitelist = f.readlines()
-
+            whitelist = f.read().splitlines()
+            
         #Write down the extracted field
         with open(output_dir + file + '_tmp.txt', 'at') as file:
             for m in match:
-                res = [line for line in whitelist if(line.rstrip('\n') in m or line.rstrip('\n') in m[0])]
+                res = [line for line in whitelist if(line and re.search(line, m[0]))]
                 if not res:
                     file.write(m[0] + '\n')
 
@@ -264,6 +264,7 @@ def main():
                         resp = vt.get_file_report(hash_file)
                         response_code = resp['response_code']
                         if response_code == 204:
+                            print("It looks like you are using a free VirusTotal API key. VirusTotal has a limitation of 4 requests per minute. EmailAnalyzer will sleep for 1 minute and then continue the rest of the process.")
                             time.sleep(60)
                     if resp['results']['response_code'] == 1 and resp['results']['positives'] > 10:
                         os.rename(filePath,filePath+'_malware')
@@ -315,6 +316,7 @@ def VT_report(vt, r_file, w_file, rule, type):
                         resp = vt.get_ip_report(m[0])
                     response_code = resp['response_code']
                     if response_code == 204:
+                        print("It looks like you are using a free VirusTotal API key. VirusTotal has a limitation of 4 requests per minute. EmailAnalyzer will sleep for 1 minute and then continue the rest of the process.")
                         time.sleep(60)
 
                 if resp['results']['response_code'] == 1 and resp['results']['positives'] > 0:
