@@ -1,27 +1,30 @@
 #!/usr/bin/env python3
 
-#EmailAnalyzer.py (python3 script) 
-#by André Calvinho (aka MrCalv1n and calv1n)
+# EmailAnalyzer.py (python3 script)
+# by André Calvinho (aka MrCalv1n and calv1n)
 
-#Extracts IoCs (emails, IPs, URLs, attachments,...) from .msg and .eml files.
+# Extracts IoCs (emails, IPs, URLs, attachments,...) from .msg and .eml files.
 #
-#Currently, it also has support to expand shorted URLs and to scan attached files and URLs against VirusTotal.
+# Currently, it also has support to expand shorted URLs and to scan attached
+# files and URLs against VirusTotal.
 #
-#You need a VirusTotal API to use this feature.
+# You need a VirusTotal API to use this feature.
 #
-#Please note that it doesn't upload any files to VirusTotal, it only checks if there is a match with known hashes 
-#(so don't worry about exfiltrating sensitive files ;-) ). It also doesn't visit the expanded URL webpage, it only performs 
-#some checks against the short url site provider.
+# Please note that it doesn't upload any files to VirusTotal, it only checks
+# if there is a match with known hashes
+# (so don't worry about exfiltrating sensitive files ;-) ).
+# It also doesn't visit the expanded URL webpage, it only performs
+# some checks against the short url site provider.
 
-import extract_msg
+import argparse
+import base64
+from collections import OrderedDict
 from eml_parser import eml_parser
+import extract_msg
 import sys
 import re
 import os
-import base64
 import magic
-import argparse
-from collections import OrderedDict
 from virus_total_apis import PublicApi as VirusTotalPublicApi
 import errno
 import json
@@ -29,18 +32,20 @@ import shutil, glob
 import outlookmsgfile
 import requests
 import hashlib
-import time #remove if not needed
+import time  # remove if not needed
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 def remove_duplicate_lines(input_file, output_file):
-    lines_seen = set() # holds lines already seen
+    lines_seen = set()  # holds lines already seen
     outfile = open(output_file, "w")
     for line in open(input_file, "r"):
-        if line not in lines_seen: # not a duplicate
+        if line not in lines_seen:  # not a duplicate
             outfile.write(line)
             lines_seen.add(line)
     outfile.close()
+
 
 def eml_parser_func(input_file, output_dir):
     # where to save attachments to
@@ -56,7 +61,7 @@ def eml_parser_func(input_file, output_dir):
         if not os.path.exists(os.path.dirname(filename)):
             try:
                 os.makedirs(os.path.dirname(filename))
-            except OSError as exc: # Guard against race condition
+            except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
 
@@ -64,7 +69,7 @@ def eml_parser_func(input_file, output_dir):
         with open(filename, 'wb') as a_out:
             a_out.write(base64.b64decode(message['raw']))
 
-    with open(input_file,'rt') as file:
+    with open(input_file, 'rt') as file:
         value = file.read()
         parsed_founds(value, output_dir)
 
@@ -72,23 +77,25 @@ def eml_parser_func(input_file, output_dir):
 
     moveAllFilesinDir(output_dir + "tmp/", output_dir + "extracted-attachments/")
 
+
 def parsed_founds(src_file, output_dir):
 
     with open('confs/rules.json') as json_file:
         regex_list = json.load(json_file)
 
     for file, regex in regex_list['rules'].items():
-        match = re.findall(regex,str(src_file))
+        match = re.findall(regex, str(src_file))
 
         with open('confs/whitelist.txt', 'rt') as f:
             whitelist = f.read().splitlines()
-            
-        #Write down the extracted field
+
+        # Write down the extracted field
         with open(output_dir + file + '_tmp.txt', 'at') as file:
             for m in match:
                 res = [line for line in whitelist if(line and re.search(line, m[0]))]
                 if not res:
                     file.write(m[0] + '\n')
+
 
 def msg_parser_func(input_file, output_dir):
     msg = extract_msg.Message(input_file)
@@ -105,16 +112,17 @@ def msg_parser_func(input_file, output_dir):
 
     moveAllFilesinDir(output_dir + "tmp/", output_dir + "extracted-attachments/")
 
+
 def moveAllFilesinDir(srcDir, dstDir):
     if not os.path.exists(dstDir):
         os.makedirs(dstDir)
     # Check if both the are directories
-    if os.path.isdir(srcDir) and os.path.isdir(dstDir) :
+    if os.path.isdir(srcDir) and os.path.isdir(dstDir):
         # Iterate over all the files in source directory
         for filePath in os.listdir(srcDir):
             # Move each file to destination Directory
             try:
-                shutil.move(srcDir+filePath, dstDir);
+                shutil.move(srcDir+filePath, dstDir)
             except:
                 pass
         shutil.rmtree(srcDir)
@@ -122,17 +130,19 @@ def moveAllFilesinDir(srcDir, dstDir):
     else:
         print("srcDir & dstDir should be Directories")
 
+
 def clean_duplicates(output_dir):
 
-    #Cleanup duplicate lines
+    # Cleanup duplicate lines
 
     for file in os.listdir(output_dir):
-         filename = str(os.fsdecode(output_dir + file))
-         if "_tmp" in filename: 
-            remove_duplicate_lines(filename, filename.replace('_tmp',''))
+        filename = str(os.fsdecode(output_dir + file))
+        if "_tmp" in filename:
+            remove_duplicate_lines(filename, filename.replace('_tmp', ''))
             os.remove(filename)
-         else:
-             continue
+        else:
+            continue
+
 
 def logo():
 
@@ -149,7 +159,7 @@ def logo():
 
 
 def main():
-    print("\033c");
+    print("\033c")
     logo()
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
@@ -158,7 +168,7 @@ def main():
     parser.add_argument("-w", "--output-directory", dest="output_dir", help="specifies a directory as output")
     parser.add_argument("-vt", "--virus-total", action="store_true", help="Enables scanning of email attachments in VirusTotal")
 
-    if len(sys.argv)==1:
+    if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
 
@@ -176,7 +186,7 @@ def main():
         if not os.path.exists(output_dir):
             try:
                 os.makedirs(output_dir)
-            except OSError as exc: # Guard against race condition
+            except OSError as exc:  # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
 
@@ -214,25 +224,25 @@ def main():
     if os.path.exists(str(os.getcwd()+'/__pycache__')):
         shutil.rmtree(str(os.getcwd()+'/__pycache__'))
 
-    #Here we start the analysis of the parsed content
+    # Here we start the analysis of the parsed content
 
-    #Check if shorturls exist, if so, expland them
+    # Check if shorturls exist, if so, expland them
     switch = False
 
-    with open(output_dir + 'urls_tmp.txt','wt') as newurls_file:
-        with open(output_dir + 'urls.txt','rt') as urls_file:
-            with open('confs/shorturl-providers.txt','rt') as f:
+    with open(output_dir + 'urls_tmp.txt', 'wt') as newurls_file:
+        with open(output_dir + 'urls.txt', 'rt') as urls_file:
+            with open('confs/shorturl-providers.txt', 'rt') as f:
                 shorturlproviders = f.readlines()
                 for line in urls_file:
                     for provider in shorturlproviders:
                         if provider.strip() in line.strip():
-                            resp = expand_url(line.strip(),provider.strip())
+                            resp = expand_url(line.strip(), provider.strip())
                             newurls_file.write(line.strip() + ' (' + resp + ')\n')
                             switch = True
                             break
                         else:
                             switch = False
-                    if (switch == False):
+                    if (switch is False):
                         newurls_file.write(line)
 
     clean_duplicates(output_dir)
@@ -253,7 +263,8 @@ def main():
             print("Error! Can't read a valid VirusTotal api key!")
             quit()
 
-        # traverse root directory, and list directories as dirs and files as files in the extracted attachments
+        # traverse root directory, and list directories as dirs and
+        # files as files in the extracted attachments
         for root, dirs, files in os.walk(output_dir + "/extracted-attachments/"):
             for file in files:
                 filePath = (os.path.join(root, file))
@@ -267,12 +278,11 @@ def main():
                             print("It looks like you are using a free VirusTotal API key. VirusTotal has a limitation of 4 requests per minute. EmailAnalyzer will sleep for 1 minute and then continue the rest of the process.")
                             time.sleep(60)
                     if resp['results']['response_code'] == 1 and resp['results']['positives'] > 10:
-                        os.rename(filePath,filePath+'_malware')
-
+                        os.rename(filePath, filePath+'_malware')
                 except:
                     print("Error, can't connect to VirusTotal!")
 
-        #now do the same to check urls 
+        # now do the same to check urls
 
         url_file = ""
         url_rule = ""
@@ -284,28 +294,27 @@ def main():
             for line in file:
                 if "http" in line:
                     url_file = line.split('"')[1] + '.txt'
-                    url_rule = line.split('"')[3].replace('\\\\','\\')
+                    url_rule = line.split('"')[3].replace('\\\\', '\\')
                 if "ip" in line:
                     ip_file = line.split('"')[1] + '.txt'
-                    ip_rule = line.split('"')[3].replace('\\\\','\\')
+                    ip_rule = line.split('"')[3].replace('\\\\', '\\')
 
-
-        with open(output_dir + 'malware_urls.txt','at') as w_file:
-            with open(output_dir + url_file,'r') as r_file:
+        with open(output_dir + 'malware_urls.txt', 'at') as w_file:
+            with open(output_dir + url_file, 'r') as r_file:
                 VT_report(vt, r_file, w_file, url_rule, "url")
-            with open(output_dir + ip_file,'r') as r_file:
+            with open(output_dir + ip_file, 'r') as r_file:
                 VT_report(vt, r_file, w_file, url_rule, "ip")
 
-        #Remove malware_urls.txt file if empty
+        # Remove malware_urls.txt file if empty
         if os.stat(output_dir + 'malware_urls.txt').st_size == 0:
             os.remove(output_dir + 'malware_urls.txt')
 
-
     print("Done! Check out the output directory to see the results.")
+
 
 def VT_report(vt, r_file, w_file, rule, type):
     for line in r_file:
-        match = re.findall(rule,line.strip())
+        match = re.findall(rule, line.strip())
         for m in match:
             try:
                 response_code = 204
@@ -324,9 +333,10 @@ def VT_report(vt, r_file, w_file, rule, type):
             except:
                 print("Error, can't connect to VirusTotal!")
 
+
 def expand_url(url, provider):
     while provider in url:
-        headers=OrderedDict([
+        headers = OrderedDict([
             ('User-Agent', 'EmailAnalyzer python3 tool'),
             ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'),
             ('Accept-Language', 'en-US,en;q=0.5'),
@@ -337,6 +347,7 @@ def expand_url(url, provider):
         resp = requests.get(url, headers=headers, allow_redirects=False)
         url = resp.headers['Location']
     return url
+
 
 if __name__ == "__main__":
     main()
