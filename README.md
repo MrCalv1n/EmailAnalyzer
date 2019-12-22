@@ -25,7 +25,7 @@ Example usage
 
 This will create several txt files with IoCs extracted (like Bro does) and a folder ("extracted-attachments") with the attached files.
 
-```python 
+```bash 
     ▓█████  ███▄ ▄███▓ ▄▄▄       ██▓ ██▓    ▄▄▄       ███▄    █  ▄▄▄       ██▓   ▓██   ██▓▒███████▒▓█████  ██▀███
     ▓█   ▀ ▓██▒▀█▀ ██▒▒████▄    ▓██▒▓██▒   ▒████▄     ██ ▀█   █ ▒████▄    ▓██▒    ▒██  ██▒▒ ▒ ▒ ▄▀░▓█   ▀ ▓██ ▒ ██▒
     ▒███   ▓██    ▓██░▒██  ▀█▄  ▒██▒▒██░   ▒██  ▀█▄  ▓██  ▀█ ██▒▒██  ▀█▄  ▒██░     ▒██ ██░░ ▒ ▄▀▒░ ▒███   ▓██ ░▄█ ▒
