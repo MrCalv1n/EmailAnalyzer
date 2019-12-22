@@ -25,6 +25,7 @@ import sys
 import re
 import os
 import magic
+from collections import OrderedDict
 from virus_total_apis import PublicApi as VirusTotalPublicApi
 import errno
 import json
@@ -167,6 +168,7 @@ def main():
     group.add_argument("-R", "--read-directory", dest="input_dir", help="reads msg/eml files in a directory")
     parser.add_argument("-w", "--output-directory", dest="output_dir", help="specifies a directory as output")
     parser.add_argument("-vt", "--virus-total", action="store_true", help="Enables scanning of email attachments in VirusTotal")
+    parser.add_argument("--proxy", dest="proxy", help="sets proxy configurations for HTTP(S) connections")
 
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
@@ -236,7 +238,10 @@ def main():
                 for line in urls_file:
                     for provider in shorturlproviders:
                         if provider.strip() in line.strip():
-                            resp = expand_url(line.strip(), provider.strip())
+                            if args.proxy:
+                                resp = expand_url(line.strip(), provider.strip(), args.proxy)
+                            else:
+                                resp = expand_url(line.strip(), provider.strip(), "")
                             newurls_file.write(line.strip() + ' (' + resp + ')\n')
                             switch = True
                             break
@@ -258,7 +263,14 @@ def main():
                     VT_KEY = line.split("'")[1]
 
         if VT_KEY != "" and "key" not in VT_KEY:
-            vt = VirusTotalPublicApi(VT_KEY)
+            if args.proxy:
+                proxy = {
+                    'http': args.proxy,
+                    'https': args.proxy
+                }
+                vt = VirusTotalPublicApi(VT_KEY, proxies = proxy)
+            else:
+                vt = VirusTotalPublicApi(VT_KEY)
         else:
             print("Error! Can't read a valid VirusTotal api key!")
             quit()
@@ -333,8 +345,7 @@ def VT_report(vt, r_file, w_file, rule, type):
             except:
                 print("Error, can't connect to VirusTotal!")
 
-
-def expand_url(url, provider):
+def expand_url(url, provider, proxy):
     while provider in url:
         headers = OrderedDict([
             ('User-Agent', 'EmailAnalyzer python3 tool'),
@@ -344,7 +355,14 @@ def expand_url(url, provider):
             ('Upgrade-Insecure-Requests', '1')
         ])
 
-        resp = requests.get(url, headers=headers, allow_redirects=False)
+        if proxy != "":
+            proxies = {
+                'http':proxy,
+                'https':proxy
+            }
+            resp = requests.get(url, headers = headers, allow_redirects = False, proxies = proxies, verify = False)
+        else:
+            resp = requests.get(url, headers = headers, allow_redirects = False)
         url = resp.headers['Location']
     return url
 
