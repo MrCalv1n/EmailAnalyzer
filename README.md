@@ -48,6 +48,8 @@ optional arguments:
   -w OUTPUT_DIR, --output-directory OUTPUT_DIR
                         specifies a directory as output
   -vt, --virus-total    Enables scanning of email attachments in VirusTotal
+  --proxy PROXY         sets proxy configurations for HTTP(S) connections
+
 
 ```
 
@@ -57,7 +59,6 @@ optional arguments:
 * Check for Windows OS compatibility;
 * Customize the header fields for requests;
 * Create HTML final report (summary report);
-* Add proxy support;
 * ...
 
 Installation
