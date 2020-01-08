@@ -52,23 +52,26 @@ def eml_parser_func(input_file, output_dir):
     outpath = output_dir + 'tmp'
 
     m = eml_parser.decode_email(input_file, include_attachment_data=True)
+    
+    try:
+        for message in m['attachment']:
 
-    for message in m['attachment']:
+            filename = message['filename']
 
-        filename = message['filename']
+            filename = os.path.join(outpath, filename)
+            if not os.path.exists(os.path.dirname(filename)):
+                try:
+                    os.makedirs(os.path.dirname(filename))
+                except OSError as exc:  # Guard against race condition
+                    if exc.errno != errno.EEXIST:
+                        raise
 
-        filename = os.path.join(outpath, filename)
-        if not os.path.exists(os.path.dirname(filename)):
-            try:
-                os.makedirs(os.path.dirname(filename))
-            except OSError as exc:  # Guard against race condition
-                if exc.errno != errno.EEXIST:
-                    raise
-
-        print('\tWriting attachment: {}'.format(filename))
-        with open(filename, 'wb') as a_out:
-            a_out.write(base64.b64decode(message['raw']))
-
+            print('\tWriting attachment: {}'.format(filename))
+            with open(filename, 'wb') as a_out:
+                a_out.write(base64.b64decode(message['raw']))
+    except Exception:
+        pass
+    
     with open(input_file, 'rt') as file:
         value = file.read()
         parsed_founds(value, output_dir)
@@ -126,9 +129,6 @@ def moveAllFilesinDir(srcDir, dstDir):
             except:
                 pass
         shutil.rmtree(srcDir)
-
-    else:
-        print("srcDir & dstDir should be Directories")
 
 
 def clean_duplicates(output_dir):
